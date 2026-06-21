@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerebro Adolescente - Experiencia Interactiva Completa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: rgba(14, 16, 33, 0.85);
+            --text-main: #ffffff;
+            --text-muted: #cbd5e1;
+            --neon-purple: #a855f7;
+            --neon-blue: #38bdf8;
+            --neon-cyan: #22d3ee;
+            --neon-pink: #f43f5e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .brand {
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand i {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .shortcuts-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .presentation-container {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 0 5%;
+            z-index: 5;
+        }
+
+        .slide {
+            position: absolute;
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        .slide-tag {
+            display: inline-block;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--neon-purple);
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid var(--neon-purple);
+            padding: 6px 16px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+        }
+
+        h1, h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+        .title-gradient {
+            background: linear-gradient(135deg, #fff 40%, var(--neon-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-text {
+            font-size: 1.35rem;
+            color: var(--text-main);
+            line-height: 1.6;
+            max-width: 900px;
+            text-align: justify;
+        }
+
+        /* --- PORTAL DE DOS PUERTAS --- */
+        .portal-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+        }
+        .portal-title-block { text-align: center; margin-bottom: 10px; }
+        .portal-title-block h2 {
+            font-size: 2.8rem;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #ffffff, var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            width: 100%;
+            max-width: 850px;
+        }
+        .portal-card-flat {
+            border-radius: 24px;
+            padding: 45px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
+            text-align: center;
+        }
+        .portal-card-flat i { font-size: 5.5rem; margin-bottom: 10px; }
+        .portal-card-flat h3 { font-size: 2.2rem; font-weight: 800; color: #ffffff; }
+        .portal-card-flat p { font-size: 1.1rem; color: var(--text-muted); line-height: 1.4; }
+
+        .portal-card-emociones {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(159, 18, 57, 0.5));
+            border-color: rgba(244, 63, 94, 0.4);
+            box-shadow: 0 8px 25px rgba(244, 63, 94, 0.15);
+        }
+        .portal-card-emociones i { color: #ffa3b1; text-shadow: 0 0 25px var(--neon-pink); }
+        .portal-card-emociones:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 45px rgba(244, 63, 94, 0.6);
+        }
+        .portal-card-emociones.visited-dim {
+            border-color: #64748b !important;
+            background: rgba(30, 30, 40, 0.4);
+            opacity: 0.6;
+        }
+
+        .portal-card-razon {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(7, 89, 133, 0.5));
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15);
+        }
+        .portal-card-razon i { color: #bae6fd; text-shadow: 0 0 25px var(--neon-blue); }
+        .portal-card-razon:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 45px rgba(56, 189, 248, 0.6);
+        }
+        .portal-card-razon.visited-dim {
+            border-color: #64748b !important;
+            background: rgba(30, 30, 40, 0.4);
+            opacity: 0.6;
+        }
+
+        /* --- EMOCIONES GRID --- */
+        .emotions-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-top: 25px;
+        }
+        .emotion-btn {
+            background: rgba(15, 15, 30, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 18px 10px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .emotion-btn:hover { transform: translateY(-5px); }
+        .btn-alegria { border-color: rgba(234, 179, 8, 0.3); }
+        .btn-alegria:hover { border-color: #eab308; box-shadow: 0 0 15px #eab308; }
+        .btn-tristeza { border-color: rgba(59, 130, 246, 0.3); }
+        .btn-tristeza:hover { border-color: #3b82f6; box-shadow: 0 0 15px #3b82f6; }
+        .btn-enojo { border-color: rgba(239, 68, 68, 0.3); }
+        .btn-enojo:hover { border-color: #ef4444; box-shadow: 0 0 15px #ef4444; }
+        .btn-miedo { border-color: rgba(168, 85, 247, 0.3); }
+        .btn-miedo:hover { border-color: #a855f7; box-shadow: 0 0 15px #a855f7; }
+        .btn-desagrado { border-color: rgba(34, 197, 94, 0.3); }
+        .btn-desagrado:hover { border-color: #22c55e; box-shadow: 0 0 15px #22c55e; }
+        .btn-ansiedad { border-color: rgba(249, 115, 22, 0.3); }
+        .btn-ansiedad:hover { border-color: #f97316; box-shadow: 0 0 15px #f97316; }
+        .btn-verguenza { border-color: rgba(236, 72, 153, 0.3); }
+        .btn-verguenza:hover { border-color: #ec4899; box-shadow: 0 0 15px #ec4899; }
+        .btn-envidia { border-color: rgba(16, 185, 129, 0.3); }
+        .btn-envidia:hover { border-color: #10b981; box-shadow: 0 0 15px #10b981; }
+        .btn-aburrimiento { border-color: rgba(148, 163, 184, 0.3); }
+        .btn-aburrimiento:hover { border-color: #94a3b8; box-shadow: 0 0 15px #94a3b8; }
+
+        /* --- FACTORES FLIP --- */
+        .flip-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            perspective: 1200px;
+        }
+        .flip-card { height: 150px; cursor: pointer; position: relative; }
+        .flip-card-inner {
+            position: relative;
+            width: 100%; height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%; height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px; padding: 20px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .card-front { background: var(--card-bg); color: #fff; }
+        .card-front i { font-size: 2.3rem; color: var(--neon-pink); margin-bottom: 10px; }
+        .card-front span { font-size: 1.1rem; font-weight: 800; }
+        .card-back {
+            background: linear-gradient(135deg, #1d0f33, #070414);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
+            transform: rotateY(180deg);
+        }
+        .card-back p { font-size: 0.95rem; color: #fff; line-height: 1.4; text-align: center; }
+
+        /* --- ANATOMÍA CON IMAGEN ENLAZADA --- */
+        .brain-layout {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .brain-image-container {
+            width: 100%;
+            max-width: 460px;
+            height: 340px;
+            margin: 0 auto;
+            border: 2px dashed rgba(168, 85, 247, 0.3);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .brain-image-container img { width: 100%; height: 100%; object-fit: contain; }
+        .lobe-selector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .lobe-btn-node { background: rgba(15, 15, 35, 0.8); border: 2px solid transparent; padding: 15px; border-radius: 14px; color: #ffffff; font-weight: 800; cursor: pointer; text-align: center; transition: all 0.3s ease; }
+        
+        /* Ajuste de colores Neón LED para nodos enlazados al dibujo */
+        #btn-l-frontal { border-color: #ef4444; }
+        #btn-l-frontal:hover, #btn-l-frontal.active-node { background: rgba(239, 68, 68, 0.3); box-shadow: 0 0 15px #ef4444; }
+        
+        #btn-l-parietal { border-color: #eab308; } /* Cambiado a amarillo */
+        #btn-l-parietal:hover, #btn-l-parietal.active-node { background: rgba(234, 179, 8, 0.3); box-shadow: 0 0 15px #eab308; }
+        
+        #btn-l-temporal { border-color: #a855f7; } /* Cambiado a lila */
+        #btn-l-temporal:hover, #btn-l-temporal.active-node { background: rgba(168, 85, 247, 0.3); box-shadow: 0 0 15px #a855f7; }
+        
+        #btn-l-occipital { border-color: #22c55e; } /* Cambiado a verde */
+        #btn-l-occipital:hover, #btn-l-occipital.active-node { background: rgba(34, 197, 94, 0.3); box-shadow: 0 0 15px #22c55e; }
+
+        .brain-info-panel { background: var(--card-bg); border: 2px solid var(--neon-purple); box-shadow: 0 0 25px rgba(168, 85, 247, 0.2); padding: 30px; border-radius: 24px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
+        .brain-info-panel h3 { font-size: 1.8rem; margin-bottom: 10px; font-weight: 800; }
+
+        /* --- POP-UP CENTRAL --- */
+        .overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: all 0.4s ease; }
+        .overlay.active { opacity: 1; pointer-events: auto; }
+        .popup-card { background: #090a12; border: 2px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(6, 182, 212, 0.4); padding: 35px; border-radius: 24px; max-width: 480px; width: 90%; text-align: center; transform: scale(0.8); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .overlay.active .popup-card { transform: scale(1); }
+        .popup-icon { font-size: 4rem; margin-bottom: 12px; display: inline-block; }
+        .popup-title { font-size: 2.1rem; font-weight: 800; margin-bottom: 12px; }
+        .popup-desc { font-size: 1.15rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; text-align: center; }
+        .popup-close-btn { background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue)); border: none; padding: 10px 30px; border-radius: 30px; color: #fff; font-weight: 800; cursor: pointer; font-size: 0.95rem; }
+
+        .split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 25px; }
+        .split-col { background: var(--card-bg); padding: 30px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.03); }
+        .split-col h3 { font-size: 1.8rem; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+
+        .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .check-card { background: var(--card-bg); border: 1px solid rgba(56, 189, 248, 0.1); padding: 18px; border-radius: 16px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.3s; }
+        .check-card:hover { border-color: var(--neon-blue); transform: translateY(-3px); }
+        .check-card i { font-size: 1.4rem; color: var(--neon-cyan); margin-top: 2px; }
+        .check-card-content h4 { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; color: #fff; }
+        .check-card-content p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.4; text-align: justify; }
+
+        .back-portal-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 10px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 800; cursor: pointer; width: fit-content; margin-top: 25px; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .back-portal-btn:hover { background: var(--neon-purple); border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 55px; height: 55px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 10; transition: all 0.3s; }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); }
+        .nav-btn.prev { left: 30px; }
+        .nav-btn.next { right: 30px; }
+        .nav-btn.disabled { opacity: 0.15; cursor: not-allowed; border-color: rgba(255,255,255,0.05); }
+
+        footer { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .progress-container { display: flex; align-items: center; gap: 15px; font-size: 0.85rem; color: var(--text-muted); }
+        .progress-bar-bg { width: 150px; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); transition: width 0.3s; }
+        
+        .toggle-script-btn, .fullscreen-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 10px 18px; border-radius: 8px; color: #fff; font-size: 0.85rem; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .toggle-script-btn:hover { background: var(--neon-purple); border-color: var(--neon-purple); }
+        .fullscreen-btn:hover { background: #fff; color: var(--bg-color); }
+
+        .script-panel { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 800px; background: rgba(4, 5, 13, 0.98); border: 1px solid var(--neon-purple); box-shadow: 0 0 25px rgba(168, 85, 247, 0.35); border-radius: 14px; padding: 18px; z-index: 100; display: none; }
+        .script-panel.visible { display: block; }
+        .script-header { font-size: 0.75rem; text-transform: uppercase; color: var(--neon-cyan); font-weight: 800; margin-bottom: 6px; }
+        .script-text { font-size: 0.95rem; color: #e2e8f0; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <header>
+        <div class="brand"><i class="fa-solid fa-brain"></i> Cerebro Adolescente Interactivo</div>
+        <div class="shortcuts-hint" id="hintBox"><i class="fa-solid fa-keyboard"></i> Navegación: ◄ ► o Espacio</div>
+    </header>
+
+    <button class="nav-btn prev" id="btnPrev" onclick="changeSlide(-1)"><i class="fa-solid fa-arrow-left"></i></button>
+    <button class="nav-btn next" id="btnNext" onclick="changeSlide(1)"><i class="fa-solid fa-arrow-right"></i></button>
+
+    <main class="presentation-container">
+
+        <div class="slide active" id="slide-portada" data-script="Hola. En este trabajo vamos a explorar cómo funciona el cerebro adolescente y cómo las emociones influyen en nuestros pensamientos, decisiones y comportamientos.">
+            <div style="border-left: 5px solid var(--neon-purple); padding-left: 30px;">
+                <div class="slide-tag">Proyecto Multimedial</div>
+                <h1 class="title-gradient" style="font-size: 3.5rem;">🧠 EL CEREBRO ADOLESCENTE<br>Y LA INFLUENCIA DE LAS EMOCIONES</h1>
+                <p style="font-style: italic; color: var(--neon-cyan); font-size: 1.35rem; margin: 20px 0;">
+                    "Comprender nuestras emociones es comprender cómo funciona nuestro cerebro."
+                </p>
+                <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); max-width: 500px;">
+                    <p style="color: #fff; font-size: 1.2rem; line-height: 1.8; font-weight: 600;">
+                        <span style="color: var(--neon-cyan);">Integrantes:</span>  Nerea Esmeralda Morel <br>
+                        <span style="color: var(--neon-blue);">Curso:</span> 3RO<br>
+                        <span style="color: var(--neon-purple);">Materia:</span> Biología
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" id="slide-portal" data-script="Llegamos al Portal de las Dimensiones. Debes elegir una dimensión para recorrer. Cuando termines ambas, pasaremos a la anatomía cerebral.">
+            <div class="portal-wrapper">
+                <div class="portal-title-block">
+                    <div class="slide-tag" style="background: rgba(168, 85, 247, 0.1); border-color: var(--neon-purple);">¿Por dónde comenzar?</div>
+                    <h2 id="portalFeedbackTitle">Selecciona una dimensión</h2>
+                </div>
+                
+                <div class="portal-grid">
+                    <div class="portal-card-flat portal-card-emociones" id="portal-emocion-card" onclick="goToDimension(2)">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                        <h3>Dimensión Emoción</h3>
+                        <p>Sistemas afectivos, impulsos y respuestas reactivas inmediatas</p>
+                    </div>
+
+                    <div class="portal-card-flat portal-card-razon" id="portal-razon-card" onclick="goToDimension(7)">
+                        <i class="fa-solid fa-brain"></i>
+                        <h3>Dimensión Razón</h3>
+                        <p>Corteza analítica, procesamiento de datos y control de impulsos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-script="Las emociones forman parte de nuestra vida diaria. ¡Hacé clic en cada una para ver qué provoca!">
+            <div class="slide-tag" style="color: var(--neon-pink); border-color: var(--neon-pink); background: rgba(244, 63, 94, 0.1);">Dimensión Emoción</div>
+            <h2>¿Qué son las emociones?</h2>
+            <p class="slide-text">Son respuestas naturales que experimentamos ante diferentes situaciones:</p>
+            
+            <div class="emotions-grid">
+                <div class="emotion-btn btn-alegria" onclick="openPopupWithSound('😀', 'Alegría', '¡Súper motivante! Genera conexión social, energía positiva y placer.', '#eab308')"><i class="fa-solid fa-face-laugh-beam" style="color: #eab308;"></i><span>Alegría</span></div>
+                <div class="emotion-btn btn-tristeza" onclick="openPopupWithSound('😢', 'Tristeza', 'Te ayuda a frenar, procesar decepciones y buscar apoyo afectivo.', '#3b82f6')"><i class="fa-solid fa-face-sad-tear" style="color: #3b82f6;"></i><span>Tristeza</span></div>
+                <div class="emotion-btn btn-enojo" onclick="openPopupWithSound('😠', 'Enojo', '¡Señala tus límites! Te da fuerza para actuar cuando considerás algo injusto.', '#ef4444')"><i class="fa-solid fa-face-angry" style="color: #ef4444;"></i><span>Enojo</span></div>
+                <div class="emotion-btn btn-miedo" onclick="openPopupWithSound('😨', 'Miedo', '¡Tu escudo biológico! Activa un estado de alerta para protegerte.', '#a855f7')"><i class="fa-solid fa-face-flushed" style="color: #a855f7;"></i><span>Miedo</span></div>
+                <div class="emotion-btn btn-desagrado" onclick="openPopupWithSound('🤢', 'Desagrado', 'Te impulsa a rechazar alimentos en mal estado o entornos nocivos.', '#22c55e')"><i class="fa-solid fa-face-grimace" style="color: #22c55e;"></i><span>Desagrado</span></div>
+                <div class="emotion-btn btn-ansiedad" onclick="openPopupWithSound('😰', 'Ansiedad', 'Prepara tu cuerpo ante retos futuros, anticipando posibles escenarios.', '#f97316')"><i class="fa-solid fa-face-frown-open" style="color: #f97316;"></i><span>Ansiedad</span></div>
+                <div class="emotion-btn btn-verguenza" onclick="openPopupWithSound('😳', 'Vergüenza', 'Refleja el temor a quedar expuesto o no cumplir expectativas sociales.', '#ec4899')"><i class="fa-solid fa-face-frown" style="color: #ec4899;"></i><span>Vergüenza</span></div>
+                <div class="emotion-btn btn-envidia" onclick="openPopupWithSound('😒', 'Envidia', 'Muestra deseos de lo que otros poseen, sirviendo de brújula de metas personales.', '#10b981')"><i class="fa-solid fa-face-rolling-eyes" style="color: #10b981;"></i><span>Envidia</span></div>
+                <div class="emotion-btn btn-aburrimiento" onclick="openPopupWithSound('😑', 'Aburrimiento', 'Falta transitoria de estímulo, empujando a tu cerebro a inventar algo nuevo.', '#94a3b8')"><i class="fa-solid fa-face-meh" style="color: #94a3b8;"></i><span>Aburrimiento</span></div>
+            </div>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('emocion')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" data-script="Las emociones se sienten con mucha fuerza porque las áreas reactivas se desarrollan antes que el control racional.">
+            <div class="slide-tag" style="color: var(--neon-pink); border-color: var(--neon-pink); background: rgba(244, 63, 94, 0.1);">Dimensión Emoción</div>
+            <h2>⚡ ¿Por qué las emociones son tan intensas?</h2>
+            <p class="slide-text" style="margin-bottom: 20px;">Durante la adolescencia, las áreas del cerebro profundamente relacionadas con el procesamiento de las emociones se desarrollan mucho más rápido que aquellas encargadas del autocontrol racional.</p>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('emocion')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" data-script="La amígdala funciona como una alarma reactiva ante situaciones intensas.">
+            <div class="slide-tag" style="color: var(--neon-pink); border-color: var(--neon-pink); background: rgba(244, 63, 94, 0.1);">Dimensión Emoción</div>
+            <h2>🧠 La Amígdala: Alarma Reactiva</h2>
+            <div class="split-layout">
+                <div class="split-col" style="border-color: var(--neon-pink); display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="color: var(--neon-pink);"><i class="fa-solid fa-bell"></i> Central de Alarmas</h3>
+                    <p class="slide-text" style="font-size: 1.15rem;">La amígdala es una pequeña estructura con forma de almendra que se encarga de procesar las reacciones emocionales más rápidas.</p>
+                </div>
+                <div class="split-col" style="border-color: var(--neon-pink); display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="color: var(--neon-pink);"><i class="fa-solid fa-bolt"></i> Hiperactividad</h3>
+                    <p class="slide-text" style="font-size: 1.15rem;">En los adolescentes, la amígdala suele estar altamente activa, provocando reacciones espontáneas.</p>
+                </div>
+            </div>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('emocion')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" data-script="Las emociones responden al entorno social y biológico. Pasa el mouse sobre las tarjetas.">
+            <div class="slide-tag" style="color: var(--neon-pink); border-color: var(--neon-pink); background: rgba(244, 63, 94, 0.1);">Dimensión Emoción</div>
+            <h2>👫 Factores que influyen en las emociones</h2>
+            <div class="flip-grid">
+                <div class="flip-card" onmouseenter="playFlipSound()"><div class="flip-card-inner"><div class="card-front"><i class="fa-solid fa-house-user"></i><span>La Familia</span></div><div class="card-back"><p>Tu núcleo básico. El soporte y los límites afectivos te ayudan a madurar seguro.</p></div></div></div>
+                <div class="flip-card" onmouseenter="playFlipSound()"><div class="flip-card-inner"><div class="card-front"><i class="fa-solid fa-users"></i><span>Los Amigos</span></div><div class="card-back"><p>La necesidad de pertenecer e identificarte con pares influye en tu humor diario.</p></div></div></div>
+                <div class="flip-card" onmouseenter="playFlipSound()"><div class="flip-card-inner"><div class="card-front"><i class="fa-solid fa-school"></i><span>La Escuela</span></div><div class="card-back"><p>Las exigencias del estudio y la convivencia son disparadores de retos afectivos.</p></div></div></div>
+                <div class="flip-card" onmouseenter="playFlipSound()"><div class="flip-card-inner"><div class="card-front"><i class="fa-solid fa-dna" style="color: #ef4444; text-shadow: 0 0 10px #ef4444;"></i><span>La Genética</span></div><div class="card-back"><p>Factores químicos heredados que esculpen tu temperamento y sensibilidad base.</p></div></div></div>
+                <div class="flip-card" onmouseenter="playFlipSound()"><div class="flip-card-inner"><div class="card-front"><i class="fa-solid fa-mobile-screen-button"></i><span>Pantallas</span></div><div class="card-back"><p>El consumo constante de contenidos digitales estimula tu sistema nervioso al instante.</p></div></div></div>
+                <div class="flip-card" onmouseenter="playFlipSound()"><div class="flip-card-inner"><div class="card-front"><i class="fa-solid fa-compass"></i><span>Experiencias</span></div><div class="card-back"><p>Tus vivencias personales van diseñando la forma en la que respondes al mundo.</p></div></div></div>
+            </div>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('emocion')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" id="slide-fin-emocion" data-script="Las redes sociales son un disparador masivo de comparaciones. Haz clic en Volver al portal para continuar con la otra dimensión.">
+            <div class="slide-tag" style="color: var(--neon-pink); border-color: var(--neon-pink); background: rgba(244, 63, 94, 0.1);">Dimensión Emoción</div>
+            <h2>📱 Las emociones y las redes sociales</h2>
+            <p class="slide-text" style="margin-bottom: 20px;">Las redes sociales son un espectacular disparador emocional. Por un lado, te permiten divertirte con memes y conectarte al instante con tus amigos.</p>
+            <p class="slide-text">Por otro lado, la comparación constante con vidas perfectas puede provocar ansiedad o estrés. Cuidar el tiempo de uso es clave.</p>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('emocion')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" data-script="El cerebro sigue optimizándose mediante la reorganización de redes sinápticas.">
+            <div class="slide-tag" style="color: var(--neon-blue); border-color: var(--neon-blue); background: rgba(56, 189, 248, 0.1);">Dimensión Razón</div>
+            <h2>🧠 ¿Qué es el cerebro adolescente?</h2>
+            <p class="slide-text" style="margin-bottom: 20px;">Visto desde la perspectiva lógica, el cerebro adolescente es un órgano que se encuentra en un estado asombroso de reorganización y optimización de conexiones.</p>
+            <p class="slide-text">Aunque ya posee su tamaño definitivo, sus conexiones neuronales siguen madurando de forma sostenida hasta alcanzar aproximadamente los 25 años.</p>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('razon')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" data-script="La corteza prefrontal es nuestra central de control ejecutivo analítico.">
+            <div class="slide-tag" style="color: var(--neon-blue); border-color: var(--neon-blue); background: rgba(56, 189, 248, 0.1);">Dimensión Razón</div>
+            <h2>💭 La Corteza Prefrontal: Central de Control</h2>
+            <div class="split-layout">
+                <div class="split-col" style="border-color: var(--neon-blue); display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="color: var(--neon-blue);"><i class="fa-solid fa-brain"></i> Funciones Ejecutivas</h3>
+                    <p class="slide-text" style="font-size: 1.15rem;">La corteza prefrontal se encarga de las tareas analíticas: planificar el futuro, razonar lógicamente y medir las consecuencias.</p>
+                </div>
+                <div class="split-col" style="border-color: var(--neon-blue); display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="color: var(--neon-blue);"><i class="fa-solid fa-clock-rotate-left"></i> En Construcción</h3>
+                    <p class="slide-text" style="font-size: 1.15rem;">Al ser la última parte del cerebro en madurar, a veces tiene dificultades para frenar los impulsos.</p>
+                </div>
+            </div>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('razon')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" id="slide-fin-razon" data-script="Podemos guiar nuestras emociones de manera racional y saludable. Haz clic en Volver al portal para continuar.">
+            <div class="slide-tag" style="color: var(--neon-blue); border-color: var(--neon-blue); background: rgba(56, 189, 248, 0.1);">Dimensión Razón</div>
+            <h2>💡 ¿Cómo podemos manejar nuestras emociones?</h2>
+            <div class="checklist-grid">
+                <div class="check-card"><i class="fa-regular fa-comments"></i><div class="check-card-content"><h4>Hablar con alguien de confianza</h4><p>Ponerle palabras claras a lo que sentís alivia el estrés neurológico.</p></div></div>
+                <div class="check-card"><i class="fa-solid fa-person-running"></i><div class="check-card-content"><h4>Realizar actividad física</h4><p>Quema el exceso de cortisol y libera endorfinas de buen humor.</p></div></div>
+                <div class="check-card"><i class="fa-solid fa-music"></i><div class="check-card-content"><h4>Música y actividades placenteras</h4><p>Sintonizar pasatiempos divertidos desconecta la hiperactividad de la amígdala.</p></div></div>
+                <div class="check-card"><i class="fa-solid fa-bed"></i><div class="check-card-content"><h4>Descansar y dormir lo suficiente</h4><p>Permite a la corteza prefrontal repararse para procesar mejores decisiones.</p></div></div>
+            </div>
+            <button class="back-portal-btn" onclick="returnToPortalFromDimension('razon')"><i class="fa-solid fa-door-open"></i> Volver al Portal</button>
+        </div>
+
+        <div class="slide" id="slide-anatomia" data-script="Exploremos la estructura anatómica fundamental y su ubicación exacta. Haz clic en cada lóbulo para ver sus funciones.">
+            <div class="slide-tag" style="color: var(--neon-purple); border-color: var(--neon-purple); background: rgba(168, 85, 247, 0.1);">Anatomía Estructural</div>
+            <h2>🧠 Estructura y Ubicación de los Lóbulos</h2>
+            
+            <div class="brain-layout">
+                <div class="brain-image-container">
+                    <img src="cerebro.png" alt="Estructura del Cerebro - Referencia Visual">
+                </div>
+
+                <div>
+                    <div class="lobe-selector-grid">
+                        <div class="lobe-btn-node" id="btn-l-frontal" onclick="showLobeNode('frontal')">Lóbulo Frontal</div>
+                        <div class="lobe-btn-node" id="btn-l-parietal" onclick="showLobeNode('parietal')">Lóbulo Parietal</div>
+                        <div class="lobe-btn-node" id="btn-l-temporal" onclick="showLobeNode('temporal')">Lóbulo Temporal</div>
+                        <div class="lobe-btn-node" id="btn-l-occipital" onclick="showLobeNode('occipital')">Lóbulo Occipital</div>
+                    </div>
+
+                    <div class="brain-info-panel">
+                        <div id="brain-info-content">
+                            <h3>Explora la Ubicación</h3>
+                            <p style="font-size: 1.15rem; line-height: 1.5; color: var(--text-muted);">Selecciona cualquiera de los botones de los lóbulos para conocer su ubicación anatómica y su función específica en el desarrollo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" id="slide-conclusion" data-script="En conclusión, entender el funcionamiento biológico del cerebro nos ayuda a crecer con inteligencia emocional. ¡Muchísimas gracias por su atención!">
+            <div class="slide-tag" style="color: var(--neon-blue); border-color: var(--neon-blue); background: rgba(56, 189, 248, 0.1);">Dimensión Razón</div>
+            <h2>Conclusión y Cierre</h2>
+            <p class="slide-text" style="font-size: 1.5rem; color: #fff; margin-bottom: 25px; line-height: 1.5;">El cerebro adolescente está en etapa de desarrollo constante.</p>
+            <p class="slide-text">Las emociones tienen una influencia gigantesca en cómo pensás, elegís y actúas. Entender su funcionamiento y aprender a equilibrar lo que sentís es la base fundamental para tu crecimiento.</p>
+            <h3 style="margin-top: 40px; color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); font-size: 2.2rem; font-weight: 800;">¡Muchísimas gracias por su atención! 🧠✨</h3>
+        </div>
+
+    </main>
+
+    <div id="popupOverlay" class="overlay">
+        <div class="popup-card" id="popupCard">
+            <span id="popupIcon" class="popup-icon"></span>
+            <h3 id="popupTitle" class="popup-title"></h3>
+            <p id="popupDesc" class="popup-desc"></p>
+            <button class="popup-close-btn" onclick="closePopup()">¡Qué genial!</button>
+        </div>
+    </div>
+
+    <div id="scriptPanel" class="script-panel">
+        <div class="script-header"><i class="fa-solid fa-microphone"></i> Guion sugerido:</div>
+        <div id="scriptText" class="script-text"></div>
+    </div>
+
+    <footer>
+        <div class="progress-container">
+            <span id="slideCounter">1 / 12</span>
+            <div class="progress-bar-bg"><div id="progressBar" class="progress-bar-fill"></div></div>
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <button class="toggle-script-btn" onclick="toggleScript()"><i class="fa-solid fa-file-lines"></i> Mostrar Guion</button>
+            <button class="fullscreen-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i> Pantalla Completa</button>
+        </div>
+    </footer>
+
+    <script>
+        let currentSlideIdx = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slideCounter = document.getElementById('slideCounter');
+        const progressBar = document.getElementById('progressBar');
+        const scriptPanel = document.getElementById('scriptPanel');
+        const scriptText = document.getElementById('scriptText');
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const hintBox = document.getElementById('hintBox');
+        let scriptVisible = false;
+
+        let hasVisitedEmocion = false;
+        let hasVisitedRazon = false;
+
+        let particles = [];
+        let ambientMode = 'PORTAL'; 
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSynthSound(freqStart, freqEnd, duration, type = "sine") {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        function playTransitionSound() { playSynthSound(200, 900, 0.35, "triangle"); }
+        function playFlipSound() { playSynthSound(500, 250, 0.06, "sine"); }
+        function playPopupSound() { playSynthSound(523, 659, 0.12, "sine"); }
+
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                if (ambientMode === 'EMOTION') {
+                    this.speedX = (Math.random() - 0.5) * 4; this.speedY = -Math.random() * 3 - 1;
+                    this.color = `hsla(${340 + Math.random() * 30}, 90%, 65%, ${Math.random() * 0.5 + 0.3})`;
+                } else if (ambientMode === 'REASON') {
+                    this.speedX = (Math.random() - 0.5) * 0.8; this.speedY = (Math.random() - 0.5) * 0.8;
+                    this.color = `hsla(${190 + Math.random() * 20}, 90%, 60%, ${Math.random() * 0.4 + 0.2})`;
+                } else {
+                    this.speedX = (Math.random() - 0.5) * 1.5; this.speedY = (Math.random() - 0.5) * 1.5;
+                    this.color = `hsla(${270 + Math.random() * 30}, 80%, 70%, ${Math.random() * 0.3 + 0.2})`;
+                }
+            }
+            update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset(); }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); }
+        }
+        for (let i = 0; i < 65; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function goToDimension(slideTarget) {
+            playTransitionSound();
+            goToSlideByElement(slideTarget);
+        }
+
+        function returnToPortalFromDimension(dimensionKey) {
+            if (dimensionKey === 'emocion') {
+                hasVisitedEmocion = true;
+                document.getElementById('portal-emocion-card').classList.add('visited-dim');
+            } else if (dimensionKey === 'razon') {
+                hasVisitedRazon = true;
+                document.getElementById('portal-razon-card').classList.add('visited-dim');
+            }
+
+            // Redirección encadenada inteligente a Anatomía (Slide index 10)
+            if (hasVisitedEmocion && hasVisitedRazon) {
+                goToSlideByElement(10);
+            } else {
+                document.getElementById('portalFeedbackTitle').textContent = "¡Muy bien! Completa la dimensión restante";
+                goToSlideByElement(1);
+            }
+        }
+
+        // Datos e información estructural sin íconos decorativos en el panel
+        const lobeData = {
+            frontal: { title: "Lóbulo Frontal", color: "#ef4444", desc: "Ubicado al frente. Regula la planificación de metas, razonamiento analítico, resolución de problemas y el control consciente de los impulsos." },
+            parietal: { title: "Lóbulo Parietal", color: "#eab308", desc: "Ubicado en la parte superior. Integra la información sensorial del cuerpo, incluyendo el tacto, la temperatura y la ubicación en el espacio." },
+            temporal: { title: "Lóbulo Temporal", color: "#a855f7", desc: "Ubicado a los lados. Clave para decodificar la audición, el procesamiento del lenguaje y la memoria, en estrecha conexión con la alarma emocional de la amígdala." },
+            occipital: { title: "Lóbulo Occipital", color: "#22c55e", desc: "Ubicado en la zona posterior de la cabeza. Su única y crucial tarea es procesar e interpretar los estímulos visuales." }
+        };
+
+        function showLobeNode(lobeKey) {
+            playPopupSound();
+            document.querySelectorAll('.lobe-btn-node').forEach(b => b.classList.remove('active-node'));
+            document.getElementById(`btn-l-${lobeKey}`).classList.add('active-node');
+            const data = lobeData[lobeKey];
+            document.getElementById('brain-info-content').innerHTML = `
+                <h3 style="color: ${data.color}; font-weight:800; margin-bottom: 10px;">${data.title}</h3>
+                <p style="font-size: 1.25rem; line-height: 1.5; color: #fff;">${data.desc}</p>
+            `;
+        }
+
+        function updatePresentation() {
+            slides.forEach((slide, idx) => { slide.classList.toggle('active', idx === currentSlideIdx); });
+            slideCounter.textContent = `${currentSlideIdx + 1} / ${slides.length}`;
+            progressBar.style.width = `${((currentSlideIdx + 1) / slides.length) * 100}%`;
+            scriptText.textContent = slides[currentSlideIdx].getAttribute('data-script');
+
+            if (currentSlideIdx === 1) {
+                btnPrev.classList.remove('disabled');
+                btnNext.classList.add('disabled');
+                hintBox.innerHTML = `<i class="fa-solid fa-lock"></i> Selección Obligatoria: Elige una Dimensión`;
+            } else {
+                btnPrev.classList.remove('disabled');
+                btnNext.classList.remove('disabled');
+                hintBox.innerHTML = `<i class="fa-solid fa-keyboard"></i> Navegación: ◄ ► o Espacio`;
+            }
+
+            if (currentSlideIdx >= 2 && currentSlideIdx <= 6) ambientMode = 'EMOTION';
+            else if (currentSlideIdx >= 7 && currentSlideIdx <= 9) ambientMode = 'REASON';
+            else ambientMode = 'PORTAL';
+
+            particles.forEach(p => p.reset());
+        }
+
+        function changeSlide(dir) {
+            if (document.getElementById('popupOverlay').classList.contains('active')) return;
+            if (currentSlideIdx === 1 && dir === 1) return; 
+
+            if (currentSlideIdx === 6 && dir === 1) { returnToPortalFromDimension('emocion'); return; }
+            if (currentSlideIdx === 2 && dir === -1) { goToSlideByElement(1); return; }
+            
+            if (currentSlideIdx === 9 && dir === 1) { returnToPortalFromDimension('razon'); return; }
+            if (currentSlideIdx === 7 && dir === -1) { goToSlideByElement(1); return; }
+
+            currentSlideIdx += dir;
+            if (currentSlideIdx < 0) currentSlideIdx = 0;
+            if (currentSlideIdx >= slides.length) currentSlideIdx = slides.length - 1;
+            updatePresentation();
+        }
+
+        function goToSlideByElement(index) { currentSlideIdx = index; updatePresentation(); }
+        
+        function openPopupWithSound(icon, title, desc, activeColor) {
+            playPopupSound();
+            document.getElementById('popupIcon').textContent = icon;
+            document.getElementById('popupTitle').textContent = title;
+            document.getElementById('popupDesc').textContent = desc;
+            const card = document.getElementById('popupCard');
+            card.style.borderColor = activeColor;
+            card.style.boxShadow = `0 0 35px ${activeColor}`;
+            document.getElementById('popupOverlay').classList.add('active');
+        }
+        function closePopup() { document.getElementById('popupOverlay').classList.remove('active'); }
+        function toggleScript() { scriptVisible = !scriptVisible; scriptPanel.classList.toggle('visible', scriptVisible); }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('popupOverlay').classList.contains('active')) {
+                if (e.key === 'Escape' || e.key === 'Enter') closePopup();
+                return;
+            }
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+        });
+
+        updatePresentation();
+    </script>
+</body>
+</html>
